@@ -14,6 +14,8 @@ app.get("/", (req,res)=>{
     res.render("camera");
 });
 
+let latestFrame = null;
+
 app.get('/stream', (req, res) => {
     res.writeHead(200, {
         'Content-Type': 'multipart/x-mixed-replace; boundary=frame',
@@ -39,6 +41,7 @@ app.get('/stream', (req, res) => {
 
         while (start !== -1 && end !== -1 && end > start) {
             const frame = buffer.slice(start, end + 2);
+            latestFrame = frame;
 
             res.write(`--frame\r\n`);
             res.write(`Content-Type: image/jpeg\r\n`);
@@ -66,16 +69,13 @@ app.get('/stream', (req, res) => {
 });
 
 app.get("/photo", (req,res)=>{
+
+    if(!latestFrame) return res.status(500).send("フレーム未取得");
     const filename = `photo_${Date.now()}.jpg`;
     const filePath = path.join(__dirname, "public", "photos", filename);
-
-    exec(`libcamera-still -o ${filePath} --width 1280 --height 720 -n`,(err)=>{
-        if(err){
-            console.error(err);
-            return res.status(500).send("写真撮影に失敗しました");
-        }
-        res.json({ url: `/photos/${filename}` });
-    });
+    //保存
+    fs.writeFileSync(filePath, latestFrame);
+    res.json({ url: `/photos/${filename}` });
 });
 
 // 動画録画開始
