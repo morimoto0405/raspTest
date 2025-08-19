@@ -30,20 +30,24 @@ app.get("/photo", (req,res)=>{
 app.get('/stream', (req, res) => {
     res.writeHead(200, {
         'Content-Type': 'video/mp4',
+        "Cache-Control": "no-cache",
+    "Connection": "close"
     });
 
-   const cam = spawn("libcamera-vid", [
-    "--nopreview",
-    "--codec", "h264",
-    "--width", "1280",
-    "--height", "720",
-    "--framerate", "30",
-    "--timeout", "0",
-    "--output", "-"
-  ]);
-   cam.stdout.pipe(res);
+     // libcamera-vid で生H.264出力 → ffmpegでWebMに変換
+  const camProcess = spawn("bash", ["-c", `
+    libcamera-vid --nopreview --codec h264 --width 1280 --height 720 --framerate 30 --timeout 0 --output - |
+    ffmpeg -i - -c:v copy -f webm -
+  `]);
+ camProcess.stdout.pipe(res);
 
-  req.on("close", () => cam.kill());
+  camProcess.stderr.on("data", data => {
+    console.error("ffmpeg:", data.toString());
+  });
+
+  req.on("close", () => {
+    camProcess.kill();
+  });
 });
 
 app.listen(3000, (req,res)=>{
