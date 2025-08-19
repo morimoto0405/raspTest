@@ -22,7 +22,7 @@ app.get("/stream", (req,res)=>{
     });
 
     const cam = spawn("libcamera-vid",[
-        "--nopreview",
+        // "--nopreview",
         "-t", "0",
         "--width", "640",
         "--height", "480",
