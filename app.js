@@ -34,13 +34,11 @@ app.get("/stream", (req,res)=>{
        "Connection": "Close" 
     });
 
-    const stream = spawn("libcamera-jpeg", [
+    const stream = spawn("libcamera-vid", [
         "-t", "0",
         "--width", "640",
         "--height", "480", 
-        "--inline", 
-        "--loop", 
-        "--framerate", "25", 
+        "--framerate", "60", 
         "-o", "-" //stdoutに出力
   ]);
 
