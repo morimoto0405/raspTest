@@ -49,6 +49,10 @@ app.get('/stream', (req, res) => {
             res.write(frame);
             res.write('\r\n');
 
+            if(recordingProcess){
+                recordingProcess.stdin.write(frame);
+            }
+
             buffer = buffer.slice(end + 2);
             start = buffer.indexOf(Buffer.from([0xFF, 0xD8]));
             end = buffer.indexOf(Buffer.from([0xFF, 0xD9]));
@@ -95,8 +99,6 @@ app.get("/video/start", (req, res) => {
     "-c:v", "copy",
     filePath
   ]);
-
-  cameraProcess.stdout.pipe(recordingProcess.stdin);
   recordingProcess.on("close", () => recordingProcess = null);
   res.json({message:`録画開始`, file: `videos/${filename}`});
 });
