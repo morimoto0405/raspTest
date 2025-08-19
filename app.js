@@ -27,29 +27,55 @@ app.get("/photo", (req,res)=>{
     });
 });
 
-app.get("/stream", (req,res)=>{
+app.get('/stream', (req, res) => {
     res.writeHead(200, {
-       "Content-Type": "multipart/x-mixed-replace; boundary=frame",
-       "Chache-Control": "no-cache",
-       "Connection": "Close" 
+        'Content-Type': 'multipart/x-mixed-replace; boundary=frame',
+        'Cache-Control': 'no-cache',
+        'Connection': 'close',
+        'Pragma': 'no-cache'
     });
 
-    const stream = spawn("libcamera-vid", [
-        "-t", "0",
-        "--width", "640",
-        "--height", "480", 
-        "--framerate", "60", 
-        "-o", "-" //stdoutに出力
-  ]);
+    // libcamera-vid + ffmpeg をパイプラインで実行
+    cameraProcess = spawn('bash', ['-c', `
+    libcamera-vid --nopreview --codec yuv420 --width 1920 --height 1080 --framerate 30 --timeout 0 --output - |
+    ffmpeg -f rawvideo -pix_fmt yuv420p -s 1920x1080 -r 30 -i - -f mjpeg -
+  `]);
 
-  stream.stdout.on("data", (data) => {
-    res.write(`--frame\r\nContent-Type: image/jpeg\r\n\r\n`);
-    res.write(data);
-    res.write("\r\n");
-  });
+    let buffer = Buffer.alloc(0);
 
-  stream.on("close", () => res.end());
-  req.on("close",()=> stream.kill()); //クライアント切断時はプロセスの中止
+    cameraProcess.stdout.on('data', (data) => {
+        buffer = Buffer.concat([buffer, data]);
+
+        // JPEGフレームの先頭と末尾を探す
+        let start = buffer.indexOf(Buffer.from([0xFF, 0xD8])); // SOI
+        let end = buffer.indexOf(Buffer.from([0xFF, 0xD9]));   // EOI
+
+        while (start !== -1 && end !== -1 && end > start) {
+            const frame = buffer.slice(start, end + 2);
+
+            res.write(`--frame\r\n`);
+            res.write(`Content-Type: image/jpeg\r\n`);
+            res.write(`Content-Length: ${frame.length}\r\n\r\n`);
+            res.write(frame);
+            res.write('\r\n');
+
+            buffer = buffer.slice(end + 2);
+            start = buffer.indexOf(Buffer.from([0xFF, 0xD8]));
+            end = buffer.indexOf(Buffer.from([0xFF, 0xD9]));
+        }
+    });
+
+    cameraProcess.stderr.on('data', (data) => {
+        console.error(`stderr: ${data}`);
+    });
+
+    req.on('close', () => {
+        console.log('Client disconnected');
+        if (cameraProcess) {
+            cameraProcess.kill();
+            cameraProcess = null;
+        }
+    });
 });
 
 app.listen(3000, (req,res)=>{
