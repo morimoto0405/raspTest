@@ -22,6 +22,7 @@ app.get("/stream", (req,res)=>{
     });
 
     const cam = spawn("libcamera-jpeg",[
+        "--nopreview",
         "--width", "640",
         "--height", "480",
         "--framerate", "30",
