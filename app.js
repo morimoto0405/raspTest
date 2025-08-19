@@ -30,6 +30,7 @@ app.get('/stream', (req, res) => {
      "--width", "1920",
      "--height", "1080", 
      "--framerate", "30",
+     "-t", "0",
      "--output", "-"
     ]);
 
