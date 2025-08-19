@@ -23,7 +23,7 @@ app.get("/photo", (req,res)=>{
             console.error(err);
             return res.status(500).send("写真撮影に失敗しました");
         }
-        res.json({ url: `/photo/${filename}` });
+        res.json({ url: `/photos/${filename}` });
     });
 });
 
