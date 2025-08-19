@@ -20,29 +20,31 @@ app.get('/stream', (req, res) => {
     res.writeHead(200, {
         'Content-Type': 'multipart/x-mixed-replace; boundary=frame',
         'Cache-Control': 'no-cache',
-        'Connection': 'close',
-        'Pragma': 'no-cache'
+        'Connection': 'close'
     });
 
     // libcamera-vid + ffmpeg をパイプラインで実行
-    cameraProcess = spawn('bash', ['-c', `
-    libcamera-vid --nopreview --codec yuv420 --width 1920 --height 1080 --framerate 30 --timeout 0 --output - |
-    ffmpeg -f rawvideo -pix_fmt yuv420p -s 1920x1080 -r 30 -i - -f mjpeg -
-  `]);
+    const cam = spawn('libcamera-vid', [
+     "--nopreview",
+     "--codec", "mjpeg",
+     "--width", "1920",
+     "--height", "1080", 
+     "--framerate", "30",
+     "--output", "-"
+    ]);
 
     let buffer = Buffer.alloc(0);
 
-    cameraProcess.stdout.on('data', (data) => {
+    cam.stdout.on('data', (data) => {
         buffer = Buffer.concat([buffer, data]);
-
         // JPEGフレームの先頭と末尾を探す
         let start = buffer.indexOf(Buffer.from([0xFF, 0xD8])); // SOI
         let end = buffer.indexOf(Buffer.from([0xFF, 0xD9]));   // EOI
-
         while (start !== -1 && end !== -1 && end > start) {
             const frame = buffer.slice(start, end + 2);
             latestFrame = frame;
 
+            //ライブ配信
             res.write(`--frame\r\n`);
             res.write(`Content-Type: image/jpeg\r\n`);
             res.write(`Content-Length: ${frame.length}\r\n\r\n`);
@@ -59,16 +61,12 @@ app.get('/stream', (req, res) => {
         }
     });
 
-    cameraProcess.stderr.on('data', (data) => {
+    cam.stderr.on('data', (data) => {
         console.error(`stderr: ${data}`);
     });
 
     req.on('close', () => {
-        console.log('Client disconnected');
-        if (cameraProcess) {
-            cameraProcess.kill();
-            cameraProcess = null;
-        }
+        cam.kill();
     });
 });
 
@@ -107,6 +105,7 @@ app.get("/video/start", (req, res) => {
 app.get("/video/stop", (req, res) => {
   if (!recordingProcess) return res.status(400).send("録画中ではありません");
   recordingProcess.stdin.end();
+  recordingProcess = null;
   res.json({ message: "録画停止"});
 });
 
