@@ -14,6 +14,24 @@ app.set("view engine", "ejs");
 app.use(express.json({ limit: "100mb" }));
 app.use(express.urlencoded({ extended: true }));
 
+function startGStreamer(){
+    const gst = spawn("gst-launch-1.0",[
+        "-v",
+        "libcamerasrc",
+        "!", "videoconvert",
+        "!", "vp8enc", "deadline=1",
+        "!", "rtpvp8pay",
+        "!", "webrtcbin", "name=sendrecv", "stun-server=stun://stun.l.google.com:19302"
+    ]);
+
+    gst.stdout.on("data", data => console.log("GStreamer:", data.toString()));
+    gst.stderr.on("data", data => console.error("GStreamer ERR:", data.toString()));
+    gst.on("close", code => console.log("GStreamer exited with code", code));
+
+    return gst;
+}
+
+const gstProcess = startGStreamer();
 
 app.get("/", (req,res)=>{
     res.render("camera");
