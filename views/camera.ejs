@@ -24,7 +24,9 @@
               aria-label="Close"
             ></button>
           </div>
-          <div class="modal-body" id="output"></div>
+          <div class="modal-body" id="output">
+            <img src="/stream" width="400" />
+          </div>
           <div class="modal-footer">
             <button
               type="button"
@@ -55,6 +57,15 @@
     crossorigin="anonymous"
   ></script>
   <script>
+    let stream;
+
+    document
+      .getElementById("modal")
+      .addEventListener("shown.bs.modal", async () => {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        document.getElementById("preview").srcObject = stream;
+      });
+
     document.getElementById("photoBtn").addEventListener("click", async () => {
       const res = await fetch("/photo");
       const data = await res.json();

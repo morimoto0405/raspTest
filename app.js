@@ -27,6 +27,24 @@ app.get("/photo", (req,res)=>{
     });
 });
 
+app.get("/stream", (req,res)=>{
+    res.writeHead(200, {
+       "Content-Type": "multipart/x-mixed-replace; boundary=frame" 
+    });
+
+    const stream = spawn("libcamera-vid", [
+    "--inline", "-t", "0", "--width", "640", "--height", "480", "--framerate", "25", "-o", "-"
+  ]);
+
+  stream.stdout.on("data", (data) => {
+    res.write(`--frame\r\nContent-Type: image/jpeg\r\n\r\n`);
+    res.write(data);
+    res.write("\r\n");
+  });
+
+  stream.on("close", () => res.end());
+});
+
 app.listen(3000, (req,res)=>{
     console.log("ポート3000で待受け中");
 });
