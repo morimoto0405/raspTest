@@ -29,11 +29,19 @@ app.get("/photo", (req,res)=>{
 
 app.get("/stream", (req,res)=>{
     res.writeHead(200, {
-       "Content-Type": "multipart/x-mixed-replace; boundary=frame" 
+       "Content-Type": "multipart/x-mixed-replace; boundary=frame",
+       "Chache-Control": "no-cache",
+       "Connection": "Close" 
     });
 
     const stream = spawn("libcamera-jpeg", [
-    "-t", "0", "--width", "640", "--height", "480", "--inline", "--loop", "--framerate", "25", "-o", "-"
+        "-t", "0",
+        "--width", "640",
+        "--height", "480", 
+        "--inline", 
+        "--loop", 
+        "--framerate", "25", 
+        "-o", "-" //stdoutに出力
   ]);
 
   stream.stdout.on("data", (data) => {
@@ -43,6 +51,7 @@ app.get("/stream", (req,res)=>{
   });
 
   stream.on("close", () => res.end());
+  req.on("close",()=> stream.kill()); //クライアント切断時はプロセスの中止
 });
 
 app.listen(3000, (req,res)=>{
