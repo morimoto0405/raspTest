@@ -69,7 +69,6 @@ app.get('/stream', (req, res) => {
 });
 
 app.get("/photo", (req,res)=>{
-
     if(!latestFrame) return res.status(500).send("フレーム未取得");
     const filename = `photo_${Date.now()}.jpg`;
     const filePath = path.join(__dirname, "public", "photos", filename);
@@ -78,31 +77,35 @@ app.get("/photo", (req,res)=>{
     res.json({ url: `/photos/${filename}` });
 });
 
+app.post("/save/photo", async(req,res)=>{
+
+});
+
+let recordingProcess = null;
+
 // 動画録画開始
 app.get("/video/start", (req, res) => {
-  if (videoProcess) return res.send("録画中です");
-  const filename = `video_${Date.now()}.h264`;
+  if (recordingProcess) return res.send("録画中です");
+  const filename = `video_${Date.now()}.mp4`;
   const filePath = path.join(__dirname, "public", "videos", filename);
 
-  videoProcess = spawn("libcamera-vid", [
-    "--width", "1280",
-    "--height", "720",
-    "--framerate", "30",
-    "--timeout", "0",
-    "--output", filePath
+  recordingProcess = spawn("ffmpeg", [
+    "-f", "mjpeg",
+    "-i", "-",
+    "-c:v", "copy",
+    filePath
   ]);
 
-  videoProcess.stderr.on("data", (data) => console.error("Video ERR:", data.toString()));
-  videoProcess.on("close", () => { videoProcess = null; });
-  res.send(`録画開始: ${filename}`);
+  cameraProcess.stdout.pipe(recordingProcess.stdin);
+  recordingProcess.on("close", () => recordingProcess = null);
+  res.json({message:`録画開始`, file: `videos/${filename}`});
 });
 
 // 動画録画停止
 app.get("/video/stop", (req, res) => {
-  if (!videoProcess) return res.send("録画中ではありません");
-  videoProcess.kill();
-  videoProcess = null;
-  res.send("録画停止");
+  if (!recordingProcess) return res.status(400).send("録画中ではありません");
+  recordingProcess.stdin.end();
+  res.json({ message: "録画停止"});
 });
 
 

@@ -42,6 +42,12 @@
             <button type="button" id="photoBtn" class="btn btn-primary">
               撮影
             </button>
+            <button type="button" id="videoBtn" class="btn btn-primary">
+              録画
+            </button>
+            <button type="button" id="videoStopBtn" class="btn btn-primary">
+              録画停止
+            </button>
           </div>
         </div>
       </div>
@@ -77,5 +83,17 @@
         "output"
       ).innerHTML = `<img src=${data.url} width="400">`;
     });
+
+    document.getElementById("videoBtn").addEventListener("click", async () => {
+      const res = await fetch("/video/start");
+      const data = await res.json();
+    });
+
+    document
+      .getElementById("videoStopBtn")
+      .addEventListener("click", async () => {
+        const res = await fetch("video/stop");
+        const data = await res.json();
+      });
   </script>
 </html>
