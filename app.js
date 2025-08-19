@@ -32,8 +32,8 @@ app.get("/stream", (req,res)=>{
        "Content-Type": "multipart/x-mixed-replace; boundary=frame" 
     });
 
-    const stream = spawn("libcamera-vid", [
-    "--inline", "-t", "0", "--width", "640", "--height", "480", "--framerate", "25", "-o", "-"
+    const stream = spawn("libcamera-jpeg", [
+    "-t", "0", "--width", "640", "--height", "480", "--inline", "--loop", "--framerate", "25", "-o", "-"
   ]);
 
   stream.stdout.on("data", (data) => {
