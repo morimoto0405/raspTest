@@ -21,11 +21,13 @@ app.get("/stream", (req,res)=>{
         "Connection": "close", 
     });
 
-    const cam = spawn("libcamera-jpeg",[
+    const cam = spawn("libcamera-vid",[
         "--nopreview",
+        "-t", "0",
         "--width", "640",
         "--height", "480",
         "--framerate", "30",
+        "--codec", "mjpeg",
         "--output", "-"
     ]);
 
