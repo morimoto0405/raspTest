@@ -25,14 +25,11 @@
             ></button>
           </div>
           <div class="modal-body" id="output">
-            <video
-              id="video"
-              autoplay
-              playsinline
-              muted
+            <img
+              src="/stream"
               class="w-100 h-100"
               style="object-fit: contain"
-            ></video>
+            />
           </div>
           <div class="modal-footer">
             <button
@@ -63,41 +60,6 @@
     integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
     crossorigin="anonymous"
   ></script>
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const videoEl = document.getElementById("video");
-    const socket = io();
-
-    const pc = new RTCPeerConnection();
-
-    pc.onicecandidate = (e) => {
-      if (e.candidate) socket.emit("ice-candidate", e.candidate);
-    };
-
-    pc.ontrack = (e) => {
-      videoEl.srcObject = e.streams[0];
-    };
-
-    pc.createDataChannel("dummy");
-
-    async function start() {
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      socket.emit("offer", offer.sdp);
-    }
-
-    socket.on("answer", async (sdp) => {
-      await pc.setRemoteDescription({ type: "answer", sdp });
-    });
-
-    socket.on("ice-candidate", async (candidate) => {
-      try {
-        await pc.addIceCandidate(candidate);
-      } catch (e) {}
-    });
-
-    start();
-  </script>
   <script>
     let stream;
 
