@@ -14,32 +14,55 @@ app.get("/", (req,res)=>{
     res.render("camera");
 });
 
-app.get("/stream", (req,res)=>{
-    res.writeHead(200,{
-       "Content-Type": "multipart/x-mixed-replace; boundary=frame",
-        "Cache-Control": "no-cache",
-        "Connection": "close", 
+app.get('/stream', (req, res) => {
+    res.writeHead(200, {
+        'Content-Type': 'multipart/x-mixed-replace; boundary=frame',
+        'Cache-Control': 'no-cache',
+        'Connection': 'close',
+        'Pragma': 'no-cache'
     });
 
-    const cam = spawn("libcamera-vid",[
-        // "--nopreview",
-        "-t", "0",
-        "--inline",
-        "--width", "640",
-        "--height", "480",
-        "--framerate", "30",
-        "--codec", "mjpeg",
-        "--output", "-"
-    ]);
+    // libcamera-vid + ffmpeg をパイプラインで実行
+    cameraProcess = spawn('bash', ['-c', `
+    libcamera-vid --nopreview --codec yuv420 --width 1920 --height 1080 --framerate 30 --timeout 0 --output - |
+    ffmpeg -f rawvideo -pix_fmt yuv420p -s 1920x1080 -r 30 -i - -f mjpeg -
+  `]);
 
-    cam.stdout.on("data", (data)=>{
-        res.write("--frame\r\nContent-Type: image/jpeg\r\n\r\n");
-        res.write(data);
-        res.write("\r\n");
+    let buffer = Buffer.alloc(0);
+
+    cameraProcess.stdout.on('data', (data) => {
+        buffer = Buffer.concat([buffer, data]);
+
+        // JPEGフレームの先頭と末尾を探す
+        let start = buffer.indexOf(Buffer.from([0xFF, 0xD8])); // SOI
+        let end = buffer.indexOf(Buffer.from([0xFF, 0xD9]));   // EOI
+
+        while (start !== -1 && end !== -1 && end > start) {
+            const frame = buffer.slice(start, end + 2);
+
+            res.write(`--frame\r\n`);
+            res.write(`Content-Type: image/jpeg\r\n`);
+            res.write(`Content-Length: ${frame.length}\r\n\r\n`);
+            res.write(frame);
+            res.write('\r\n');
+
+            buffer = buffer.slice(end + 2);
+            start = buffer.indexOf(Buffer.from([0xFF, 0xD8]));
+            end = buffer.indexOf(Buffer.from([0xFF, 0xD9]));
+        }
     });
 
-    cam.stderr.on("data", (data)=> console.error("Camera Err:", data.toString()));
-    req.on("close", ()=> cam.kill());
+    cameraProcess.stderr.on('data', (data) => {
+        console.error(`stderr: ${data}`);
+    });
+
+    req.on('close', () => {
+        console.log('Client disconnected');
+        if (cameraProcess) {
+            cameraProcess.kill();
+            cameraProcess = null;
+        }
+    });
 });
 
 app.get("/photo", (req,res)=>{
