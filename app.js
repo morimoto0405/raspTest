@@ -16,6 +16,7 @@ app.get("/", (req,res)=>{
 
 let latestFrame = null;
 
+//ストリーミング
 app.get('/stream', (req, res) => {
     res.writeHead(200, {
         'Content-Type': 'multipart/x-mixed-replace; boundary=frame',
@@ -73,10 +74,6 @@ app.get("/photo", (req,res)=>{
     res.json({ url: `/photos/${filename}` });
 });
 
-app.post("/save/photo", async(req,res)=>{
-
-});
-
 let recordingProcess = null;
 
 // 動画録画開始
@@ -110,6 +107,42 @@ app.get("/video/stop", (req, res) => {
       //保存するか確認
     res.json({result: true, message: "録画完了", file: proc.outputFile});
   });
+});
+
+//一時保管リソースの削除
+app.get("/dispose/:file", async(req,res)=>{
+    const { file } = req.params;
+    if(!file){ 
+        return res.json({ result:false, message: "削除対象は省略できません" });
+    }
+
+    //一時ファイルの保存ディレクトリを限定
+    const photoDir = path.join(__dirname, "public", "photos");
+    const videoDir = path.join(__dirname, "public", "videos");
+
+    if(!file.startsWith("photos/") && !file.startsWith("videos/")){
+        return res.json({ result:false, message: "不正なパスです" });
+    }
+
+    //正規化して安全な絶対パスを作成
+    const filePath = path.join(__dirname, "public", file);
+    const normalizedPath = path.normalize(filePath);
+
+    //絶対パスが photosかvideos 内かチェック
+    if(!normalizedPath.startsWith(photoDir) && !normalizedPath.startsWith(videoDir)){
+        return res.json({ result: false, message: "不正内アクセスです" });
+    }
+
+    //一時ファイルの削除
+    try{
+        await fs.unlink(normalizedPath);
+        return res.json({ result: true, message:"削除しました" });
+    }catch(err){
+        if(err.code === "ENOENT"){
+            return res.json({result: false, message: "ファイルが存在しません"});
+        }
+        return res.json({ result: false, message: err.toString() });
+    }
 });
 
 

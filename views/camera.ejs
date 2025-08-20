@@ -191,7 +191,7 @@
           const data = await res.json();
           if (data.result) {
             console.log(`ファイル:${file}を削除しました`);
-          }
+          } else alert(data.message);
         }
       });
 
