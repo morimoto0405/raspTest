@@ -27,11 +27,6 @@
           </div>
           <div class="modal-body" id="output">
             <!-- 動的に作成する様に変更する -->
-            <img
-              src="/stream"
-              class="w-100 h-100"
-              style="object-fit: contain"
-            />
             <!-- ------------------------ -->
           </div>
           <div class="modal-footer">
@@ -104,6 +99,8 @@
   ></script>
   <script>
     const streamModal = document.getElementById("modal");
+    const preview = document.getElementById("preview");
+    const output = document.getElementById("output");
     let streamBoot;
     let stream;
     let file;
@@ -117,6 +114,21 @@
       return `${m}:${s}`;
     }
 
+    //モーダル起動で動的生成
+    streamModal.addEventListener("shown.bs.modal", function (e) {
+      const img = document.createElement("img");
+      img.src = "/stream";
+      img.classList.add("w-100");
+      img.classList.add("h-100");
+      img.style.objectFit = "contain";
+      output.appendChild(img);
+    });
+
+    //モーダル閉じで動的削除
+    streamModal.addEventListener("hidden.bs.modal", function (e) {
+      output.innerHTML = "";
+    });
+
     //写真撮影ボタン
     document.getElementById("photoBtn").addEventListener("click", async () => {
       const res = await fetch("/photo");
@@ -124,7 +136,6 @@
       if (data.result) {
         //プレビューモーダルの開始
         const modalElement = document.getElementById("previewModal");
-        const preview = document.getElementById("preview");
         const myModal = new bootstrap.Modal(modalElement);
 
         const img = document.createElement("img");
@@ -179,7 +190,6 @@
           document.getElementById("photoBtn").hidden = false;
           //プレビューモーダルの開始
           const modalElement = document.getElementById("previewModal");
-          const preview = document.getElementById("preview");
           const myModal = new bootstrap.Modal(modalElement);
 
           const video = document.createElement("video");
