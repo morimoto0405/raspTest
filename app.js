@@ -140,7 +140,7 @@ app.get("/dispose/:dir/:file", async(req,res)=>{
 
     //一時ファイルの削除
     try{
-        await fs.unlink(normalizedPath);
+        await fs.promises.unlink(normalizedPath);
         return res.json({ result: true, message:"削除しました" });
     }catch(err){
         if(err.code === "ENOENT"){
