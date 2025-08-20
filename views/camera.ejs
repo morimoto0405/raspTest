@@ -138,7 +138,7 @@
           //録画中枠の表示
           startTime = Date.now();
           timerInterval = setInterval(() => {
-            const elapsedSec = Math.floor((Data.now() - startTime) / 1000);
+            const elapsedSec = Math.floor((Date.now() - startTime) / 1000);
             document.getElementById("timer").textContent =
               formatTime(elapsedSec);
           }, 1000);
