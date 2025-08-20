@@ -112,6 +112,9 @@ app.get("/video/stop", (req, res) => {
 //一時保管リソースの削除
 app.get("/dispose/:dir/:file", async(req,res)=>{
     const { dir, file } = req.params;
+
+    console.log("dir", dir);
+    console.log("file", file);
     if(!file || !dir){ 
         return res.json({ result:false, message: "削除対象は省略できません" });
     }
