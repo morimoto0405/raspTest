@@ -155,7 +155,6 @@
             document.getElementById("timer").textContent =
               formatTime(elapsedSec);
           }, 1000);
-          document.getElementById("title").style.backgroundColor = "#FF0000";
           document.getElementById("recoding").hidden = false;
           document.getElementById("videoStopBtn").hidden = false;
           document.getElementById("timer").hidden = false;
@@ -168,8 +167,6 @@
     document
       .getElementById("videoStopBtn")
       .addEventListener("click", async function () {
-        document.getElementById("title").style.backgroundColor = "#FFFFFF";
-
         const res = await fetch("/video/stop");
         const data = await res.json();
         if (data.result) {

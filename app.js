@@ -61,6 +61,7 @@ app.get('/stream', (req, res) => {
         console.error(`stderr: ${data}`);
     });
     req.on('close', () => {
+        console.log("モーダルが閉じられた！！");
         cam.kill();
     });
 });
@@ -102,11 +103,8 @@ app.get("/video/stop", (req, res) => {
   const proc = recordingProcess;
   recordingProcess.stdin.end();
   recordingProcess = null;
-
+  //ffmpegのprocessが閉じられた際のコールバック
   proc.on("close", (code)=>{
-    //モーダルが閉じられたら到達？
-    console.log("モーダルが閉じられた！！");
-
     console.log("ffmpeg closed with code", code);
     //保存するか確認
     res.json({result: true, message: "録画完了", file: proc.outputFile});
