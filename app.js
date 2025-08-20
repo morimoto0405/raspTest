@@ -27,9 +27,9 @@ app.get('/stream', (req, res) => {
     const cam = spawn('libcamera-vid', [
      "--nopreview",
      "--codec", "mjpeg",
-     "--width", "1920",
-     "--height", "1080", 
-     "--framerate", "60",
+     "--width", "640",
+     "--height", "480", 
+     "--framerate", "24",
      "-t", "0",
      "--output", "-"
     ]);
@@ -96,21 +96,27 @@ app.get("/video/start", (req, res) => {
     "-f", "image2pipe",
     "-vcodec", "mjpeg",
     "-i", "-",
-    "-r", "60",
+    "-r", "24",
     "-c:v", "libx264", //copyだと失敗するのでエンコード
     filePath
   ]);
-  recordingProcess.on("close", () => recordingProcess = null);
-  res.json({message:`録画開始`, file: `videos/${filename}`});
+  recordingProcess.outputFile = `videos/${filename}`;
+  res.json({message:`録画開始`, file: recordingProcess.outputFile});
 });
 
 // 動画録画停止
 app.get("/video/stop", (req, res) => {
   if (!recordingProcess) return res.status(400).send("録画中ではありません");
+  
+  const proc = recordingProcess;
   recordingProcess.stdin.end();
   recordingProcess = null;
-  //保存するか確認
-  res.json({ message: ""});
+
+  proc.on("close", (code)=>{
+    console.log("ffmpeg closed with code", code);
+      //保存するか確認
+    res.json({ message: "録画完了", file: proc.outputFile});
+  });
 });
 
 
