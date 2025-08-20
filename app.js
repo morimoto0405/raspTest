@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const path = require("path");
-const { exec, spawn } = require("child_process");
+const { spawn } = require("child_process");
 const fs = require("fs");
 
 app.use(express.static(path.join(__dirname, "public")));
@@ -65,13 +65,14 @@ app.get('/stream', (req, res) => {
     });
 });
 
+// 写真撮影開始
 app.get("/photo", (req,res)=>{
-    if(!latestFrame) return res.status(500).send("フレーム未取得");
-    const filename = `photo_${Date.now()}.jpg`;
+    if(!latestFrame) return res.json({ result:false, message:"フレーム未取得"});
+    const filename = `photo_${Date.now()}.jpeg`;
     const filePath = path.join(__dirname, "public", "photos", filename);
     //保存
     fs.writeFileSync(filePath, latestFrame);
-    res.json({ url: `/photos/${filename}` });
+    res.json({result:true, file: `/photos/${filename}` });
 });
 
 let recordingProcess = null;
@@ -149,6 +150,8 @@ app.get("/dispose/:dir/:file", async(req,res)=>{
         return res.json({ result: false, message: err.toString() });
     }
 });
+
+//一時保管リソースの保存
 
 
 app.listen(3000, ()=>{

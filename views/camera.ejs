@@ -124,9 +124,23 @@
     document.getElementById("photoBtn").addEventListener("click", async () => {
       const res = await fetch("/photo");
       const data = await res.json();
-      document.getElementById(
-        "output"
-      ).innerHTML = `<img src=${data.url} width="400">`;
+      if (data.result) {
+        //プレビューモーダルの開始
+        const modalElement = document.getElementById("previewModal");
+        const preview = document.getElementById("preview");
+        const myModal = new bootstrap.Modal(modalElement);
+
+        const img = document.createElement("img");
+        img.src = data.file;
+        img.style.widows = "100%";
+        img.style.aspectRatio = "contains";
+        preview.innerHTML = ""; //一度クリアする
+        preview.appendChild(img);
+
+        myModal.show();
+        file = data.file;
+        console.log("here121");
+      } else alert(data.message);
     });
 
     document
@@ -173,7 +187,7 @@
           video.src = data.file;
           video.controls = true;
           video.style.widows = "100%";
-
+          preview.innerHTML = ""; //一度クリアする
           preview.appendChild(video);
 
           myModal.show();
