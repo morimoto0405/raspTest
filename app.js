@@ -61,7 +61,7 @@ app.get('/stream', (req, res) => {
         console.error(`stderr: ${data}`);
     });
     req.on('close', () => {
-        console.log("モーダルが閉じられた！！");
+        console.log("streamが閉じられた！！");
         cam.kill();
     });
 });

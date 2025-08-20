@@ -118,6 +118,7 @@
     streamModal.addEventListener("shown.bs.modal", function (e) {
       const img = document.createElement("img");
       img.src = "/stream";
+      img.id = "streaming";
       img.classList.add("w-100");
       img.classList.add("h-100");
       img.style.objectFit = "contain";
@@ -126,7 +127,8 @@
 
     //モーダル閉じで動的削除
     streamModal.addEventListener("hidden.bs.modal", function (e) {
-      output.innerHTML = "";
+      const img = document.getElementById("streaming");
+      if (img) img.remove();
     });
 
     //写真撮影ボタン
