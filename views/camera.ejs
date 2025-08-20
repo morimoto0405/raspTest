@@ -38,6 +38,7 @@
             >
               <div class="">
                 <span id="recoding" hidden class="text-danger">●録画中...</span>
+                <span id="timer" hidden>00:00</span>
               </div>
               <div class="">
                 <button type="button" id="photoBtn" class="btn btn-primary">
@@ -104,6 +105,14 @@
     let streamBoot;
     let stream;
     let file;
+    let timerInterval;
+    let startTime;
+
+    function formatTime(seconds) {
+      const m = String(Math.floor(seconds / 60)).padStart(2, "0");
+      const s = String(seconds % 60).padStart(2, "0");
+      return `${m}:${s}`;
+    }
 
     document
       .getElementById("modal")
@@ -127,9 +136,16 @@
         const data = await res.json();
         if (data.result) {
           //録画中枠の表示
+          startTime = Date.now();
+          timerInterval = setInterval(() => {
+            const elapsedSec = Math.floor((Data.now() - startTime) / 1000);
+            document.getElementById("timer").textContent =
+              formatTime(elapsedSec);
+          }, 1000);
           document.getElementById("title").style.backgroundColor = "#FF0000";
           document.getElementById("recoding").hidden = false;
           document.getElementById("videoStopBtn").hidden = false;
+          document.getElementById("timer").hidden = false;
           this.hidden = true;
         } else alert(data.message);
       });
@@ -142,8 +158,11 @@
         const res = await fetch("/video/stop");
         const data = await res.json();
         if (data.result) {
+          clearInterval(timerInterval);
+          document.getElementById("timer").textContent = "00:00";
           this.hidden = true;
           document.getElementById("recoding").hidden = true;
+          document.getElementById("timer").hidden = true;
           document.getElementById("videoBtn").hidden = false;
           //プレビューモーダルの開始
           const modalElement = document.getElementById("previewModal");
