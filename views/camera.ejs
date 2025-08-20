@@ -17,7 +17,7 @@
       <div class="modal-dialog modal-fullscreen">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="title">写真撮影</h5>
+            <h5 class="modal-title" id="title">コンテンツ撮影</h5>
             <button
               type="button"
               class="btn-close"
@@ -26,11 +26,13 @@
             ></button>
           </div>
           <div class="modal-body" id="output">
+            <!-- 動的に作成する様に変更する -->
             <img
               src="/stream"
               class="w-100 h-100"
               style="object-fit: contain"
             />
+            <!-- ------------------------ -->
           </div>
           <div class="modal-footer">
             <div
@@ -108,19 +110,14 @@
     let timerInterval;
     let startTime;
 
+    //撮影時間計測用タイマー
     function formatTime(seconds) {
       const m = String(Math.floor(seconds / 60)).padStart(2, "0");
       const s = String(seconds % 60).padStart(2, "0");
       return `${m}:${s}`;
     }
 
-    document
-      .getElementById("modal")
-      .addEventListener("shown.bs.modal", async () => {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        document.getElementById("preview").srcObject = stream;
-      });
-
+    //写真撮影ボタン
     document.getElementById("photoBtn").addEventListener("click", async () => {
       const res = await fetch("/photo");
       const data = await res.json();
@@ -132,8 +129,9 @@
 
         const img = document.createElement("img");
         img.src = data.file;
-        img.style.widows = "100%";
-        img.style.aspectRatio = "contains";
+        img.classList.add("w-100");
+        img.classList.add("h-100");
+        img.style.aspectRatio = "contain";
         preview.innerHTML = ""; //一度クリアする
         preview.appendChild(img);
 
@@ -143,6 +141,7 @@
       } else alert(data.message);
     });
 
+    //録画開始ボタン
     document
       .getElementById("videoBtn")
       .addEventListener("click", async function () {
@@ -165,6 +164,7 @@
         } else alert(data.message);
       });
 
+    //録画停止ボタン
     document
       .getElementById("videoStopBtn")
       .addEventListener("click", async function () {
@@ -198,7 +198,7 @@
         } else alert(data.message);
       });
 
-    //破棄する
+    //コンテンツ破棄ボタン
     document
       .getElementById("disposeBtn")
       .addEventListener("click", async () => {
@@ -211,10 +211,9 @@
         }
       });
 
-    //保存する
+    //コンテンツ保存ボタン
     document.getElementById("saveBtn").addEventListener("click", async () => {
-      if (file) {
-      }
+      //ファイル名を付けさせる
     });
   </script>
 </html>

@@ -104,8 +104,11 @@ app.get("/video/stop", (req, res) => {
   recordingProcess = null;
 
   proc.on("close", (code)=>{
+    //モーダルが閉じられたら到達？
+    console.log("モーダルが閉じられた！！");
+
     console.log("ffmpeg closed with code", code);
-      //保存するか確認
+    //保存するか確認
     res.json({result: true, message: "録画完了", file: proc.outputFile});
   });
 });
@@ -152,7 +155,9 @@ app.get("/dispose/:dir/:file", async(req,res)=>{
 });
 
 //一時保管リソースの保存
+app.get("/save/:dir/:file", async(req,res)=>{
 
+});
 
 app.listen(3000, ()=>{
     console.log("ポート3000で待受け中");
