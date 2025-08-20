@@ -33,22 +33,22 @@
             />
           </div>
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              閉じる
-            </button>
-            <button type="button" id="photoBtn" class="btn btn-primary">
-              撮影
-            </button>
-            <button type="button" id="videoBtn" class="btn btn-primary">
-              録画
-            </button>
-            <button type="button" id="videoStopBtn" class="btn btn-primary">
-              録画停止
-            </button>
+            <div class="d-flex flex-row justify-content-between">
+              <div class="">
+                <span class="text-danger">●録画中...</span>
+              </div>
+              <div class="">
+                <button type="button" id="photoBtn" class="btn btn-primary">
+                  撮影
+                </button>
+                <button type="button" id="videoBtn" class="btn btn-primary">
+                  録画
+                </button>
+                <button type="button" id="videoStopBtn" class="btn btn-primary">
+                  録画停止
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -59,12 +59,6 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">保存を行ってもよろしいですか？</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
           </div>
           <div class="modal-body" id="preview"></div>
           <div class="modal-footer">
@@ -72,6 +66,7 @@
               type="button"
               class="btn btn-danger"
               data-bs-dismiss="modal"
+              id="disposeBtn"
             >
               破棄する
             </button>
@@ -101,6 +96,7 @@
     const streamModal = document.getElementById("modal");
     let streamBoot;
     let stream;
+    let file;
 
     document
       .getElementById("modal")
@@ -130,13 +126,8 @@
       .getElementById("videoStopBtn")
       .addEventListener("click", async () => {
         document.getElementById("title").style.backgroundColor = "#FFFFFF";
-        //ストリーミング
-        // if (!streamBoot) {
-        //   streamBoot = new bootstrap.Modal(streamModal);
-        // }
-        // streamBoot.hide();
 
-        const res = await fetch("video/stop");
+        const res = await fetch("/video/stop");
         const data = await res.json();
         if (data.result) {
           //プレビューモーダルの開始
@@ -152,8 +143,28 @@
           preview.appendChild(video);
 
           myModal.show();
+          file = data.file;
           console.log("here111");
         } else alert(data.message);
       });
+
+    //破棄する
+    document
+      .getElementById("disposeBtn")
+      .addEventListener("click", async () => {
+        if (file) {
+          const res = await fetch(`/dispose/${file}`);
+          const data = await res.json();
+          if (data.result) {
+            console.log(`ファイル:${file}を削除しました`);
+          }
+        }
+      });
+
+    //保存する
+    document.getElementById("saveBtn").addEventListener("click", async () => {
+      if (file) {
+      }
+    });
   </script>
 </html>
