@@ -160,6 +160,7 @@
           document.getElementById("recoding").hidden = false;
           document.getElementById("videoStopBtn").hidden = false;
           document.getElementById("timer").hidden = false;
+          document.getElementById("photoBtn").hidden = true;
           this.hidden = true;
         } else alert(data.message);
       });
@@ -178,6 +179,7 @@
           document.getElementById("recoding").hidden = true;
           document.getElementById("timer").hidden = true;
           document.getElementById("videoBtn").hidden = false;
+          document.getElementById("photoBtn").hidden = false;
           //プレビューモーダルの開始
           const modalElement = document.getElementById("previewModal");
           const preview = document.getElementById("preview");
