@@ -72,7 +72,7 @@ app.get("/photo", (req,res)=>{
     const filePath = path.join(__dirname, "public", "photos", filename);
     //保存
     fs.writeFileSync(filePath, latestFrame);
-    res.json({result:true, file: `/photos/${filename}` });
+    res.json({result:true, file: `photos/${filename}` });
 });
 
 let recordingProcess = null;
