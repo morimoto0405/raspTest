@@ -110,10 +110,9 @@ app.get("/video/stop", (req, res) => {
 });
 
 //一時保管リソースの削除
-app.get("/dispose/:file", async(req,res)=>{
-    const { file } = req.params;
-    console.log(file);
-    if(!file){ 
+app.get("/dispose/:dir/:file", async(req,res)=>{
+    const { dir, file } = req.params;
+    if(!file || !dir){ 
         return res.json({ result:false, message: "削除対象は省略できません" });
     }
 
@@ -121,12 +120,12 @@ app.get("/dispose/:file", async(req,res)=>{
     const photoDir = path.join(__dirname, "public", "photos");
     const videoDir = path.join(__dirname, "public", "videos");
 
-    if(!file.startsWith("photos/") && !file.startsWith("videos/")){
+    if(!dir.startsWith("photos") && !dir.startsWith("videos")){
         return res.json({ result:false, message: "不正なパスです" });
     }
 
     //正規化して安全な絶対パスを作成
-    const filePath = path.join(__dirname, "public", file);
+    const filePath = path.join(__dirname, "public", dir, file);
     const normalizedPath = path.normalize(filePath);
 
     //絶対パスが photosかvideos 内かチェック
