@@ -136,6 +136,8 @@ app.get("/dispose/:dir/:file", async(req,res)=>{
         return res.json({ result: false, message: "不正内アクセスです" });
     }
 
+    console.log("normalizedPath", normalizedPath);
+
     //一時ファイルの削除
     try{
         await fs.unlink(normalizedPath);
