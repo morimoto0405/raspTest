@@ -29,7 +29,7 @@ app.get('/stream', (req, res) => {
      "--codec", "mjpeg",
      "--width", "1920",
      "--height", "1080", 
-     "--framerate", "30",
+     "--framerate", "60",
      "-t", "0",
      "--output", "-"
     ]);
@@ -96,7 +96,7 @@ app.get("/video/start", (req, res) => {
     "-f", "image2pipe",
     "-vcodec", "mjpeg",
     "-i", "-",
-    "-r", "30",
+    "-r", "60",
     "-c:v", "libx264", //copyだと失敗するのでエンコード
     filePath
   ]);
@@ -109,7 +109,8 @@ app.get("/video/stop", (req, res) => {
   if (!recordingProcess) return res.status(400).send("録画中ではありません");
   recordingProcess.stdin.end();
   recordingProcess = null;
-  res.json({ message: "録画停止"});
+  //保存するか確認
+  res.json({ message: ""});
 });
 
 
