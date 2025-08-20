@@ -22,8 +22,7 @@ app.get('/stream', (req, res) => {
         'Cache-Control': 'no-cache',
         'Connection': 'close'
     });
-
-    // libcamera-vid + ffmpeg をパイプラインで実行
+    // libcamera-vidを実行
     const cam = spawn('libcamera-vid', [
      "--nopreview",
      "--codec", "mjpeg",
@@ -35,7 +34,6 @@ app.get('/stream', (req, res) => {
     ]);
 
     let buffer = Buffer.alloc(0);
-
     cam.stdout.on('data', (data) => {
         buffer = Buffer.concat([buffer, data]);
         // JPEGフレームの先頭と末尾を探す
@@ -44,28 +42,23 @@ app.get('/stream', (req, res) => {
         while (start !== -1 && end !== -1 && end > start) {
             const frame = buffer.slice(start, end + 2);
             latestFrame = frame;
-
             //ライブ配信
             res.write(`--frame\r\n`);
             res.write(`Content-Type: image/jpeg\r\n`);
             res.write(`Content-Length: ${frame.length}\r\n\r\n`);
             res.write(frame);
             res.write('\r\n');
-
             if(recordingProcess){
                 recordingProcess.stdin.write(frame);
             }
-
             buffer = buffer.slice(end + 2);
             start = buffer.indexOf(Buffer.from([0xFF, 0xD8]));
             end = buffer.indexOf(Buffer.from([0xFF, 0xD9]));
         }
     });
-
     cam.stderr.on('data', (data) => {
         console.error(`stderr: ${data}`);
     });
-
     req.on('close', () => {
         cam.kill();
     });
@@ -88,7 +81,7 @@ let recordingProcess = null;
 
 // 動画録画開始
 app.get("/video/start", (req, res) => {
-  if (recordingProcess) return res.send("録画中です");
+  if (recordingProcess) return res.json({ result: false, message: "既に録画中です" });
   const filename = `video_${Date.now()}.mp4`;
   const filePath = path.join(__dirname, "public", "videos", filename);
 
@@ -101,12 +94,12 @@ app.get("/video/start", (req, res) => {
     filePath
   ]);
   recordingProcess.outputFile = `videos/${filename}`;
-  res.json({message:`録画開始`, file: recordingProcess.outputFile});
+  res.json({result: true, message:`録画を開始しました`, file: recordingProcess.outputFile});
 });
 
 // 動画録画停止
 app.get("/video/stop", (req, res) => {
-  if (!recordingProcess) return res.status(400).send("録画中ではありません");
+  if (!recordingProcess) return res.json({ result: false, message:"録画中ではありません"});
   
   const proc = recordingProcess;
   recordingProcess.stdin.end();
@@ -115,7 +108,7 @@ app.get("/video/stop", (req, res) => {
   proc.on("close", (code)=>{
     console.log("ffmpeg closed with code", code);
       //保存するか確認
-    res.json({ message: "録画完了", file: proc.outputFile});
+    res.json({result: true, message: "録画完了", file: proc.outputFile});
   });
 });
 

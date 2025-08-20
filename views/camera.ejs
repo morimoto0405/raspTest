@@ -12,11 +12,41 @@
     />
   </head>
   <body>
+    <!-- プレビューモーダル -->
+    <div class="modal fade" tabindex="-1" id="previewModal">
+      <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">保存を行ってもよろしいですか？</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body" id="preview"></div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-danger"
+              data-bs-dismiss="modal"
+            >
+              破棄する
+            </button>
+            <button type="button" id="saveBtn" class="btn btn-success">
+              保存する
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ストリーミングモーダル -->
     <div class="modal fade" tabindex="-1" id="modal">
       <div class="modal-dialog modal-fullscreen">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">写真撮影</h5>
+            <h5 class="modal-title" id="title">写真撮影</h5>
             <button
               type="button"
               class="btn-close"
@@ -52,6 +82,7 @@
         </div>
       </div>
     </div>
+
     <h1>Hello</h1>
     <button
       class="btn btn-success"
@@ -87,13 +118,35 @@
     document.getElementById("videoBtn").addEventListener("click", async () => {
       const res = await fetch("/video/start");
       const data = await res.json();
+      if (data.result) {
+        //録画中枠の表示
+        document.getElementById("title").style.backgroundColor = "#FF0000";
+      } else alert(data.message);
     });
 
     document
       .getElementById("videoStopBtn")
       .addEventListener("click", async () => {
+        document.getElementById("title").style.backgroundColor = "#000000";
         const res = await fetch("video/stop");
         const data = await res.json();
+        if (data.result) {
+          //プレビューモーダルの開始
+          const modalElement = document.getElementById("previewModal");
+          const preview = document.getElementById("preview");
+          const myModal = new bootstrap.Modal(modalElement);
+
+          const video = document.createElement("video");
+          video.src = data.url;
+          video.controls = true;
+          video.autoplay = true;
+          video.width = 640;
+          video.height = 480;
+
+          preview.appendChild(video);
+
+          myModal.show();
+        } else alert(data.message);
       });
   </script>
 </html>
