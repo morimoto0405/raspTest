@@ -93,9 +93,11 @@ app.get("/video/start", (req, res) => {
   const filePath = path.join(__dirname, "public", "videos", filename);
 
   recordingProcess = spawn("ffmpeg", [
-    "-f", "mjpeg",
+    "-f", "image2pipe",
+    "-vcodec", "mjpeg",
     "-i", "-",
-    "-c:v", "copy",
+    "-r", "30",
+    "-c:v", "libx264", //copyだと失敗するのでエンコード
     filePath
   ]);
   recordingProcess.on("close", () => recordingProcess = null);
