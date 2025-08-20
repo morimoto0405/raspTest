@@ -33,18 +33,27 @@
             />
           </div>
           <div class="modal-footer">
-            <div class="d-flex flex-row justify-content-between">
+            <div
+              class="d-flex flex-row justify-content-between align-items-center w-100"
+            >
               <div class="">
-                <span class="text-danger">●録画中...</span>
+                <span id="recording" hidden class="text-danger"
+                  >●録画中...</span
+                >
               </div>
               <div class="">
                 <button type="button" id="photoBtn" class="btn btn-primary">
-                  撮影
+                  写真撮影
                 </button>
                 <button type="button" id="videoBtn" class="btn btn-primary">
-                  録画
+                  録画開始
                 </button>
-                <button type="button" id="videoStopBtn" class="btn btn-primary">
+                <button
+                  type="button"
+                  id="videoStopBtn"
+                  hidden
+                  class="btn btn-danger"
+                >
                   録画停止
                 </button>
               </div>
@@ -113,23 +122,31 @@
       ).innerHTML = `<img src=${data.url} width="400">`;
     });
 
-    document.getElementById("videoBtn").addEventListener("click", async () => {
-      const res = await fetch("/video/start");
-      const data = await res.json();
-      if (data.result) {
-        //録画中枠の表示
-        document.getElementById("title").style.backgroundColor = "#FF0000";
-      } else alert(data.message);
-    });
+    document
+      .getElementById("videoBtn")
+      .addEventListener("click", async function () {
+        const res = await fetch("/video/start");
+        const data = await res.json();
+        if (data.result) {
+          //録画中枠の表示
+          document.getElementById("title").style.backgroundColor = "#FF0000";
+          document.getElementById("recoding").hidden = false;
+          document.getElementById("videoStopBtn").hidden = false;
+          this.hidden = true;
+        } else alert(data.message);
+      });
 
     document
       .getElementById("videoStopBtn")
-      .addEventListener("click", async () => {
+      .addEventListener("click", async function () {
         document.getElementById("title").style.backgroundColor = "#FFFFFF";
 
         const res = await fetch("/video/stop");
         const data = await res.json();
         if (data.result) {
+          this.hidden = true;
+          document.getElementById("recoding").hidden = true;
+          document.getElementById("videoBtn").hidden = false;
           //プレビューモーダルの開始
           const modalElement = document.getElementById("previewModal");
           const preview = document.getElementById("preview");
