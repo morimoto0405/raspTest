@@ -127,7 +127,7 @@
     document
       .getElementById("videoStopBtn")
       .addEventListener("click", async () => {
-        document.getElementById("title").style.backgroundColor = "#000000";
+        document.getElementById("title").style.backgroundColor = "#FFFFFF";
         const res = await fetch("video/stop");
         const data = await res.json();
         if (data.result) {
@@ -140,12 +140,12 @@
           video.src = data.url;
           video.controls = true;
           video.autoplay = true;
-          video.width = 640;
-          video.height = 480;
+          video.style.widows = "100%";
 
           preview.appendChild(video);
 
           myModal.show();
+          console.log("here111");
         } else alert(data.message);
       });
   </script>
